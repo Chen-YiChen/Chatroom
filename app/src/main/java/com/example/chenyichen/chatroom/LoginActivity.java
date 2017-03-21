@@ -73,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.show();
 
 
-        // TODO: Implement your own authentication logic here.
+        // TODO: Implement the authentication logic here.
         new HttpAsyncTask().execute("http://140.112.18.195:8000/login/");
 
         new android.os.Handler().postDelayed(
