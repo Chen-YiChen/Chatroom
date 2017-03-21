@@ -19,7 +19,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
 
-    @Bind(R.id.input_id) EditText _emailText;
+    @Bind(R.id.input_id) EditText _idText;
     @Bind(R.id.input_password) EditText _passwordText;
     @Bind(R.id.btn_login) Button _loginButton;
 //    @Bind(R.id.link_signup) TextView _signupLink;
@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
 
-        String email = _emailText.getText().toString();
+        String id = _idText.getText().toString();
         String password = _passwordText.getText().toString();
 
         // TODO: Implement your own authentication logic here.
@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_SIGNUP) {
             if (resultCode == RESULT_OK) {
@@ -94,7 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                 this.finish();
             }
         }
-    }
+    }*/
 
     @Override
     public void onBackPressed() {
@@ -116,14 +116,14 @@ public class LoginActivity extends AppCompatActivity {
     public boolean validate() {
         boolean valid = true;
 
-        String email = _emailText.getText().toString();
+        String id = _idText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+        if (id.isEmpty()) {
+            _idText.setError("enter a valid userID.");
             valid = false;
         } else {
-            _emailText.setError(null);
+            _idText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
