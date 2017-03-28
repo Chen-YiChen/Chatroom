@@ -3,4 +3,8 @@
 
     <string name="welcome">Welcome to chatroom!</string>
     <string name="action_settings">Settings</string>
+
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_wait">WaitActivity</string>
+    <string name="image">Image thumbnail</string>
 </resources>

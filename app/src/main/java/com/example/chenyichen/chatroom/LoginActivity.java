@@ -29,7 +29,7 @@ import android.app.Activity;
 
 public class LoginActivity extends Activity implements OnClickListener {
 
-    EditText et_id, et_password;
+    EditText et_username, et_password;
     Button btnPost;
 
     @Override
@@ -38,7 +38,7 @@ public class LoginActivity extends Activity implements OnClickListener {
         setContentView(R.layout.activity_login);
 
         // get reference to the views
-        et_id = (EditText) findViewById(R.id.input_id);
+        et_username = (EditText) findViewById(R.id.input_username);
         et_password = (EditText) findViewById(R.id.input_password);
         btnPost = (Button) findViewById(R.id.btn_login);
 
@@ -47,9 +47,48 @@ public class LoginActivity extends Activity implements OnClickListener {
 
     }
 
-    public static String POST(String url, String id, String password){
+    @Override
+    public void onClick(View view) {
+
+        switch(view.getId()){
+            case R.id.btn_login:
+                if(!validate())
+                    return;
+                // call AsynTask to perform network operation on separate thread
+                new HttpAsyncTask().execute("http://140.112.18.195:8080/api/users/");
+                break;
+        }
+
+    }
+
+    private class HttpAsyncTask extends AsyncTask<String, Void, String> {
+
+        String username = et_username.getText().toString();
+        String password = et_password.getText().toString();
+
+        @Override
+        protected String doInBackground(String... urls) {
+            Log.v("doInBackground", "doInBackground");
+            return POST(urls[0], username, password);
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String _id) {
+            if(_id.matches("401")) {
+                Log.v("status", _id);
+                Toast.makeText(getBaseContext(), "Wrong username or password!", Toast.LENGTH_LONG).show();
+                return;
+            }
+            else {
+                Toast.makeText(getBaseContext(), "Successful login!", Toast.LENGTH_LONG).show();
+                switchToWaitActivity(_id, username, password);
+            }
+        }
+    }
+
+    public static String POST(String url, String username, String password){
         InputStream inputStream = null;
-        String status = null;
+        String _id = null;
         Log.v("url", url);
         try {
 
@@ -63,7 +102,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 
             // 3. build jsonObject
             JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("username", id);
+            jsonObject.accumulate("username", username);
             jsonObject.accumulate("password", password);
 
             // 4. convert JSONObject to JSON to String
@@ -79,14 +118,22 @@ public class LoginActivity extends Activity implements OnClickListener {
             // 6. set httpPost Entity
             httpPost.setEntity(se);
 
-            // 7. Set some headers to inform server about the type of the content
+            // 7. set some headers to inform server about the type of the content
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
+            httpPost.addHeader("content-type", "application/x-www-form-urlencoded");
 
-            // 8. Execute POST request to the given URL
+            // 8. execute POST request to the given URL
             HttpResponse httpResponse = httpclient.execute(httpPost);
 
-            // 9. receive response as inputStream
+            // 9. receive status code
+            int code = httpResponse.getStatusLine().getStatusCode();
+            Log.v("status code", String.valueOf(code));
+            if (code != 200) {
+                return String.valueOf(code);
+            }
+
+            // 10. receive response as inputStream
             inputStream = httpResponse.getEntity().getContent();
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder content = new StringBuilder();
@@ -94,68 +141,25 @@ public class LoginActivity extends Activity implements OnClickListener {
             while (null != (line = br.readLine())) {
                 content.append(line);
             }
-            Log.v("test", content.toString());
+            Log.v("content string", content.toString());
             JSONObject result = new JSONObject(content.toString());
-            status = result.getString("Status");
-
-            /*// 10. convert inputstream to string
-            if(inputStream != null)
-                result = convertInputStreamToString(inputStream);
-            else
-                result = "Did not work!";*/
+            _id = result.getString("_id");
 
         } catch (Exception e) {
             Log.d("InputStream", e.getLocalizedMessage());
         }
 
         // 11. return result
-        return status;
+        return _id;
     }
 
-    @Override
-    public void onClick(View view) {
-
-        switch(view.getId()){
-            case R.id.btn_login:
-                if(!validate())
-                    return;
-                // call AsynTask to perform network operation on separate thread
-                new HttpAsyncTask().execute("http://140.112.18.195:8001/login/");
-                break;
-        }
-
-    }
-    private class HttpAsyncTask extends AsyncTask<String, Void, String> {
-
-        String id = et_id.getText().toString();
-        String password = et_password.getText().toString();
-
-        @Override
-        protected String doInBackground(String... urls) {
-            Log.v("doInBackground", "doInBackground");
-            return POST(urls[0], id, password);
-        }
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(String status) {
-            if(status.matches("False")) {
-                Log.v("status", status);
-                Toast.makeText(getBaseContext(), "Wrong userID or password!", Toast.LENGTH_LONG).show();
-                return;
-            }
-            else {
-                Toast.makeText(getBaseContext(), "Successful login!", Toast.LENGTH_LONG).show();
-                switchToChatActivity(id, password);
-            }
-        }
-    }
-
-    private void switchToChatActivity(String id, String password){
+    private void switchToWaitActivity(String _id, String username, String password){
         Intent _intent = new Intent();
-        _intent.setClass(LoginActivity.this, ChatActivity.class);
+        _intent.setClass(LoginActivity.this, WaitActivity.class);
 
         Bundle _bundle = new Bundle();
-        _bundle.putString("id", id);
+        _bundle.putString("_id", _id);
+        _bundle.putString("username", username);
         _bundle.putString("password", password);
 
         _intent.putExtras(_bundle);
@@ -165,14 +169,14 @@ public class LoginActivity extends Activity implements OnClickListener {
     public boolean validate() {
         boolean valid = true;
 
-        String id = et_id.getText().toString();
+        String username = et_username.getText().toString();
         String password = et_password.getText().toString();
 
-        if (id.isEmpty()) {
-            et_id.setError("enter a valid userID.");
+        if (username.isEmpty()) {
+            et_username.setError("enter a valid username.");
             valid = false;
         } else {
-            et_id.setError(null);
+            et_username.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
