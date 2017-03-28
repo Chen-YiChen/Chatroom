@@ -89,9 +89,9 @@ public class ChatActivity extends ActionBarActivity{
 */
         // Get the bundle data from old activity
         Bundle _bundle = getIntent().getExtras();
-        _receiverId = _bundle.getString("_receiverId");
-        _receiver = _bundle.getString("_reveiver");
-        Log.v("receiver", _receiver);
+        _receiverId = _bundle.getString("idTwo");
+        //_receiver = _bundle.getString("_reveiver");
+        //Log.v("receiver", _receiver);
 
         socket = socketHandler.getSocket();
         /*try{
@@ -159,7 +159,7 @@ public class ChatActivity extends ActionBarActivity{
             sendText.put("msg",message);
             socket.emit("chat", sendText);
         }catch(JSONException e){
-            Log.v("Error","Cannot put json file")
+            Log.v("Error","Cannot put json file");
         }
 
     }

@@ -89,10 +89,12 @@ public class WaitActivity extends Activity implements
             JSONObject sendMessage = new JSONObject();
             sendMessage.put("data",_id);
             socket.emit("newUser",sendMessage);
+            Log.v("emit", "emit");
             socket.on("online", new Emitter.Listener(){
                 @Override
                 public void call(Object... args){
                     try {
+                        Log.v("change", "change");
                         InputStream inputStream = (InputStream)args[0];
                         setArray(inputStream);
                         setRowItem();
@@ -154,8 +156,8 @@ public class WaitActivity extends Activity implements
         for (int i=0; i<result.length(); i++){
             JSONObject user = result.getJSONObject(i);
             users.add(user.getString("username"));
-            //Log.v("username", user.getString("username"));
-            //Log.v("status", user.getString("online"));
+            Log.v("username", user.getString("username"));
+            Log.v("status", user.getString("online"));
             if (user.getString("online").matches("true")) {
                 status.add("ONLINE");
             }
