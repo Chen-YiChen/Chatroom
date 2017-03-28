@@ -114,7 +114,6 @@ public class WaitActivity extends Activity implements
 
         @Override
         protected String doInBackground(String... urls) {
-            Log.v("http", "async task");
             return GET(urls[0]);
         }
 
@@ -122,8 +121,6 @@ public class WaitActivity extends Activity implements
         @Override
         protected void onPostExecute(String dummy) {
             setRowItem();
-            Toast.makeText(getBaseContext(), dummy, Toast.LENGTH_LONG).show();
-            return;
         }
     }
 
@@ -171,7 +168,7 @@ public class WaitActivity extends Activity implements
     public void setRowItem(){
         rowItems = new ArrayList<RowItem>();
         for (int i = 0; i < users.size(); i++) {
-            Log.v("init_user", users.get(i));
+            //Log.v("init_user", users.get(i));
             RowItem item = new RowItem(images[0], users.get(i), status.get(i));
             rowItems.add(item);
         }
@@ -183,15 +180,20 @@ public class WaitActivity extends Activity implements
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position,
-                            long id) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (status.get(position).matches("OFFLINE")){
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "The user is OFFLINE...",
+                    Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
+            return;
+        }
         Toast toast = Toast.makeText(getApplicationContext(),
-                "Chat with " + rowItems.get(position) + " !",
+                "Chat with " + users.get(position) + " !",
                 Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
-
-
         switchToChatActivity(_id, ids.get(position));
     }
 
