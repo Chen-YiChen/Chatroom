@@ -1,7 +1,9 @@
 package com.example.chenyichen.chatroom;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -13,7 +15,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -25,9 +32,14 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 import java.net.URISyntaxException;
 /**
  * Created by chenyichen on 3/22/17.
@@ -36,18 +48,18 @@ import java.net.URISyntaxException;
 public class WaitActivity extends Activity implements
         OnItemClickListener {
 
-    public static String[] titles = new String[] { "Strawberry",
-            "Banana", "Orange", "Mixed" };
-
-    public static String[] descriptions = new String[] {
-            "It is an aggregate accessory fruit",
-            "It is the largest herbaceous flowering plant", "Citrus Fruit",
-            "Mixed Fruits" };
+    public static ArrayList<String> users = new ArrayList<String>();
+    public static ArrayList<String> status = new ArrayList<String>();
+    public static ArrayList<String> ids = new ArrayList<String>();
 
     public static Integer[] images = { R.drawable.chaton };
 
     ListView listView;
     List<RowItem> rowItems;
+    String url = null;
+    String _id = null;
+    Socket socket = null;
+    SocketHandler socketHandler;
 
     /** Called when the activity is first created. */
     @Override
@@ -56,32 +68,107 @@ public class WaitActivity extends Activity implements
         setContentView(R.layout.activity_wait);
 
         Bundle _bundle = getIntent().getExtras();
-        String _id = _bundle.getString("_id");
+        _id = _bundle.getString("_id");
         String username = _bundle.getString("username");
         String password = _bundle.getString("password");
-        Log.v("username", username);
+        url = _bundle.getString("url");
 
         TextView text_username = (TextView)findViewById(R.id.text_username);
         text_username.setText("Welcome! " + username);
-        Log.v("test", "test");
-
-        Socket socket;
+        /*
+        final Context context = this;
+        final OnItemClickListener listener = this;
+        */
+        new WaitActivity.HttpAsyncTask().execute(url + "api/users/");
 
         try{
-            socket = IO.socket("http://140.112.18.195:8080");
+            socket = IO.socket(url);
             socket.connect();
-            socket.emit("foo","Hi !! Success !");
-
+            JSONObject sendMessage = new JSONObject();
+            sendMessage.put("data",_id);
+            socket.emit("newUser",sendMessage);
+            socket.on("online", new Emitter.Listener(){
+                @Override
+                public void call(Object... args){
+                    try {
+                        InputStream inputStream = (InputStream)args[0];
+                        setArray(inputStream);
+                        setRowItem();
+                    }catch(Exception e) {
+                        Log.d("InputStream", e.getLocalizedMessage());
+                    }
+                }
+            });
         }catch(URISyntaxException e){
-
             Log.d("Error","Cannot connect to server!");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class HttpAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            Log.v("http", "async task");
+            return GET(urls[0]);
         }
 
-        getUsers("http://140.112.18.195:8080/api/users/");
+        // onPostExecute gets the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String dummy) {
+            setRowItem();
+            Toast.makeText(getBaseContext(), dummy, Toast.LENGTH_LONG).show();
+            return;
+        }
+    }
 
+    public String GET(String _url){
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpGet httpGet = new HttpGet(_url);
+
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            InputStream inputStream = httpResponse.getEntity().getContent();
+            setArray(inputStream);
+        }catch(Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    public void setArray(InputStream inputStream) throws JSONException, IOException {
+        users = new ArrayList<String>();
+        status = new ArrayList<String>();
+        ids = new ArrayList<String>();
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder content = new StringBuilder();
+        String line;
+        while (null != (line = br.readLine())) {
+            content.append(line);
+        }
+        //Log.v("content string", content.toString());
+        JSONArray result = new JSONArray(content.toString());
+        for (int i=0; i<result.length(); i++){
+            JSONObject user = result.getJSONObject(i);
+            users.add(user.getString("username"));
+            //Log.v("username", user.getString("username"));
+            //Log.v("status", user.getString("online"));
+            if (user.getString("online").matches("true")) {
+                status.add("ONLINE");
+            }
+            else{
+                status.add("OFFLINE");
+            }
+            ids.add(user.getString("_id"));
+        }
+    }
+
+    public void setRowItem(){
         rowItems = new ArrayList<RowItem>();
-        for (int i = 0; i < titles.length; i++) {
-            RowItem item = new RowItem(images[0], titles[i], descriptions[i]);
+        for (int i = 0; i < users.size(); i++) {
+            Log.v("init_user", users.get(i));
+            RowItem item = new RowItem(images[0], users.get(i), status.get(i));
             rowItems.add(item);
         }
 
@@ -89,21 +176,6 @@ public class WaitActivity extends Activity implements
         CustomBaseAdapter adapter = new CustomBaseAdapter(this, rowItems);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
-    }
-
-    public void getUsers(String url){
-        HttpClient http = new DefaultHttpClient();
-        StringBuilder buffer = null;
-        try {
-            DefaultHttpClient httpClient = new DefaultHttpClient();
-            HttpGet httpGet = new HttpGet(url);
-
-            HttpResponse httpResponse = httpClient.execute(httpGet);
-            HttpEntity httpEntity = httpResponse.getEntity();
-            String output = EntityUtils.toString(httpEntity);
-        }catch(Exception e) {
-            Log.d("Error", "getUsers Errored!");
-        }
     }
 
     @Override
@@ -115,19 +187,19 @@ public class WaitActivity extends Activity implements
         toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
 
-        // switchToChatActivity
+        switchToChatActivity(_id, ids.get(position));
     }
 
-    /*private void switchToChatActivity(String _id, String username, String password){
+    private void switchToChatActivity(String idOne, String idTwo){
+
         Intent _intent = new Intent();
         _intent.setClass(WaitActivity.this, ChatActivity.class);
-
+        socketHandler.setSocket(socket);
         Bundle _bundle = new Bundle();
-        _bundle.putString("_id", _id);
-        _bundle.putString("username", username);
-        _bundle.putString("password", password);
+        _bundle.putString("idOne", idOne);
+        _bundle.putString("idTwo", idTwo);
 
         _intent.putExtras(_bundle);
         startActivity(_intent);
-    }*/
+    }
 }
