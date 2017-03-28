@@ -2,7 +2,8 @@ package com.example.chenyichen.chatroom;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+//import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import java.util.ArrayList;
@@ -36,15 +37,16 @@ import java.net.URISyntaxException;
  */
 
 
-public class ChatActivity extends ActionBarActivity{
+public class ChatActivity extends AppCompatActivity{
 
 
-    private EditText messageET;
+/*    private EditText messageET;
     private ListView messagesContainer;
     private Button sendBtn;
     private ChatAdapter adapter;
     private ArrayList<ChatMessage> chatHistory;
-/*    public static String[] titles = new String[] { "Strawberry",
+    */
+    public static String[] titles = new String[] { "Strawberry",
             "Banana", "Orange", "Mixed" };
 
     public static String[] descriptions = new String[] {
@@ -53,19 +55,19 @@ public class ChatActivity extends ActionBarActivity{
             "Mixed Fruits" };
 
     public static Integer[] images = { R.drawable.chaton };
-*/
+
     public SocketHandler socketHandler;
 
-/*    private EditText inputMessageView;
+    private EditText inputMessageView;
     private TextView myMessage, recvMessage;
     private Button send;
 
 
 
 
-    ListView listView;
-    List<RowItem> Messages;
-*/
+   // ListView listView;
+    //List<RowItem> Messages;
+
     public static Socket socket ;
     public String _receiverId, _receiver;
 
@@ -73,20 +75,21 @@ public class ChatActivity extends ActionBarActivity{
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chatt);
-        messagesContainer = (ListView) findViewById(R.id.messagesContainer);
+        setContentView(R.layout.activity_chat);
+ /*       messagesContainer = (ListView) findViewById(R.id.messagesContainer);
         messageET = (EditText) findViewById(R.id.messageEdit);
         sendBtn = (Button) findViewById(R.id.chatSendButton);
         TextView meLabel = (TextView) findViewById(R.id.meLbl);
         TextView companionLabel = (TextView) findViewById(R.id.friendLabel);
         RelativeLayout container = (RelativeLayout) findViewById(R.id.container);
         companionLabel.setText("My Buddy");// Hard Coded
-
-
-   /*     myMessage = (TextView) findViewById(R.id.text_myMsg);
-        recvMessage = (TextView) findViewById(R.id.text_recvMsg) ;
-        send = (Button) findViewById(R.id.button_send);
 */
+
+        myMessage = (TextView) findViewById(R.id.text_myMsg);
+        recvMessage = (TextView) findViewById(R.id.text_recvMsg) ;
+        inputMessageView = (EditText) findViewById(R.id.editText);
+        send = (Button) findViewById(R.id.button_send);
+
         // Get the bundle data from old activity
         Bundle _bundle = getIntent().getExtras();
         _receiverId = _bundle.getString("idTwo");
@@ -117,10 +120,10 @@ public class ChatActivity extends ActionBarActivity{
 
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
-        sendBtn.setOnClickListener(new View.OnClickListener(){
+        send.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                String messageText = messageET.getText().toString();
+       /*         String messageText = messageET.getText().toString();
                 if (TextUtils.isEmpty(messageText)) {
                     return;
                 }
@@ -133,7 +136,12 @@ public class ChatActivity extends ActionBarActivity{
 
                 messageET.setText("");
                 displayMessage(chatMessage);
-                sendMessage(messageText);
+                */
+                //String message = inputMessageView.getText().toString();
+                //sendMessage(message);
+                sendMessage();
+                inputMessageView.setText("");
+
             }
         });
 
@@ -141,7 +149,7 @@ public class ChatActivity extends ActionBarActivity{
 
 
     }
-    public void displayMessage(ChatMessage message) {
+ /*   public void displayMessage(ChatMessage message) {
         adapter.add(message);
         adapter.notifyDataSetChanged();
         scroll();
@@ -149,10 +157,10 @@ public class ChatActivity extends ActionBarActivity{
     private void scroll() {
         messagesContainer.setSelection(messagesContainer.getCount() - 1);
     }
-
-    private void sendMessage(String message){
-        //String message = inputMessageView.getText().toString().trim();
-        //myMessage.setText(message);
+*/
+    private void sendMessage(){//String message){
+        String message = inputMessageView.getText().toString().trim();
+        myMessage.setText(message);
         JSONObject sendText = new JSONObject();
         try{
             sendText.put("receiver",_receiverId);
@@ -211,12 +219,13 @@ public class ChatActivity extends ActionBarActivity{
     };
 
     private void addMessage(String message) {
-        ChatMessage msg = new ChatMessage();
+  /*      ChatMessage msg = new ChatMessage();
         //msg.setId(1);
         msg.setMe(false);
         msg.setDate(DateFormat.getDateTimeInstance().format(new Date()));
         displayMessage(msg);
-        //recvMessage.setText(message);
+        */
+        recvMessage.setText(message);
     }
 
 }
