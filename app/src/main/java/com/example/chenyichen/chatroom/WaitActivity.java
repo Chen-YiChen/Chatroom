@@ -46,6 +46,8 @@ public class WaitActivity extends Activity implements
 
     public static Integer[] images = { R.drawable.chaton };
 
+    //public static Socket
+
     ListView listView;
     List<RowItem> rowItems;
 
@@ -116,9 +118,12 @@ public class WaitActivity extends Activity implements
         toast.show();
 
         // switchToChatActivity
+        switchToChatActivity(String _id, String username, String password)
     }
 
-    /*private void switchToChatActivity(String _id, String username, String password){
+
+
+    private void switchToChatActivity(String _id, String username, String password){
         Intent _intent = new Intent();
         _intent.setClass(WaitActivity.this, ChatActivity.class);
 
@@ -129,5 +134,5 @@ public class WaitActivity extends Activity implements
 
         _intent.putExtras(_bundle);
         startActivity(_intent);
-    }*/
+    }
 }
