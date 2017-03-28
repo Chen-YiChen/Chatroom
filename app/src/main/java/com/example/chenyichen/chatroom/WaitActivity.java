@@ -77,37 +77,59 @@ public class WaitActivity extends Activity implements
 
         TextView text_username = (TextView)findViewById(R.id.text_username);
         text_username.setText("Welcome! " + username);
-        /*
-        final Context context = this;
-        final OnItemClickListener listener = this;
-        */
-        new WaitActivity.HttpAsyncTask().execute(url + "api/users/");
 
-        try{
+
+        try {
             socket = IO.socket(url);
-            socket.connect();
-            JSONObject sendMessage = new JSONObject();
-            sendMessage.put("data",_id);
-            socket.emit("newUser",sendMessage);
-            Log.v("emit", "emit");
-            socket.on("online", new Emitter.Listener(){
-                @Override
-                public void call(Object... args){
-                    try {
-                        Log.v("change", "change");
-                        InputStream inputStream = (InputStream)args[0];
-                        setArray(inputStream);
-                        setRowItem();
-                    }catch(Exception e) {
-                        Log.d("InputStream", e.getLocalizedMessage());
-                    }
-                }
-            });
-        }catch(URISyntaxException e){
-            Log.d("Error","Cannot connect to server!");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        socket.connect();
+        JSONObject sendMessage = new JSONObject();
+        try {
+            Log.v("id", _id);
+            sendMessage.put("_id",_id);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        socket.emit("newUser",sendMessage);
+
+        new WaitActivity.HttpAsyncTask().execute(url + "api/users/");
+
+        socket.on("online", new Emitter.Listener(){
+            @Override
+            public void call(Object... args){
+                try {
+                    Log.v("change", "change");
+                    InputStream inputStream = (InputStream)args[0];
+                    setArray(inputStream);
+                    setRowItem();
+                }catch(Exception e) {
+                    Log.d("InputStream", e.getLocalizedMessage());
+                }
+            }
+        });
+
+        socket.on("chat", new Emitter.Listener(){
+            @Override
+            public void call(Object... args){
+                try {
+                    InputStream inputStream = (InputStream)args[0];
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder content = new StringBuilder();
+                    String line;
+                    while (null != (line = br.readLine())) {
+                        content.append(line);
+                    }
+                    Log.v("content string", content.toString());
+                    JSONObject result = new JSONObject(content.toString());
+                    String idTwo = result.getString("_id");
+                    switchToChatActivity(_id, idTwo);
+                }catch(Exception e) {
+                    Log.d("InputStream", e.getLocalizedMessage());
+                }
+            }
+        });
     }
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
@@ -181,6 +203,7 @@ public class WaitActivity extends Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        /*
         if (status.get(position).matches("OFFLINE")){
             Toast toast = Toast.makeText(getApplicationContext(),
                     "The user is OFFLINE...",
@@ -189,6 +212,7 @@ public class WaitActivity extends Activity implements
             toast.show();
             return;
         }
+        */
         Toast toast = Toast.makeText(getApplicationContext(),
                 "Chat with " + users.get(position) + " !",
                 Toast.LENGTH_SHORT);
