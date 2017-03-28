@@ -31,6 +31,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 
     EditText et_username, et_password;
     Button btnPost;
+    String url = "http://140.112.18.195:8080/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +56,7 @@ public class LoginActivity extends Activity implements OnClickListener {
                 if(!validate())
                     return;
                 // call AsynTask to perform network operation on separate thread
-                new HttpAsyncTask().execute("http://140.112.18.195:8080/api/users/");
-                break;
+                new HttpAsyncTask().execute(url + "api/users/");
         }
 
     }
@@ -68,14 +68,13 @@ public class LoginActivity extends Activity implements OnClickListener {
 
         @Override
         protected String doInBackground(String... urls) {
-            Log.v("doInBackground", "doInBackground");
             return POST(urls[0], username, password);
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String _id) {
             if(_id.matches("401")) {
-                Log.v("status", _id);
+                //Log.v("status", _id);
                 Toast.makeText(getBaseContext(), "Wrong username or password!", Toast.LENGTH_LONG).show();
                 return;
             }
@@ -86,17 +85,16 @@ public class LoginActivity extends Activity implements OnClickListener {
         }
     }
 
-    public static String POST(String url, String username, String password){
+    public static String POST(String _url, String username, String password){
         InputStream inputStream = null;
         String _id = null;
-        Log.v("url", url);
         try {
 
             // 1. create HttpClient
             HttpClient httpclient = new DefaultHttpClient();
 
             // 2. make POST request to the given URL
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(_url);
 
             String json = "";
 
@@ -128,7 +126,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 
             // 9. receive status code
             int code = httpResponse.getStatusLine().getStatusCode();
-            Log.v("status code", String.valueOf(code));
+            //Log.v("status code", String.valueOf(code));
             if (code != 200) {
                 return String.valueOf(code);
             }
@@ -141,7 +139,6 @@ public class LoginActivity extends Activity implements OnClickListener {
             while (null != (line = br.readLine())) {
                 content.append(line);
             }
-            Log.v("content string", content.toString());
             JSONObject result = new JSONObject(content.toString());
             _id = result.getString("_id");
 
@@ -161,6 +158,7 @@ public class LoginActivity extends Activity implements OnClickListener {
         _bundle.putString("_id", _id);
         _bundle.putString("username", username);
         _bundle.putString("password", password);
+        _bundle.putString("url", url);
 
         _intent.putExtras(_bundle);
         startActivity(_intent);
