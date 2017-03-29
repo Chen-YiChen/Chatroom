@@ -26,11 +26,6 @@ import android.widget.TextView;
 import android.widget.RelativeLayout;
 
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -87,11 +82,6 @@ public class ChatActivity extends AppCompatActivity {
     public static Socket socket;
     public String _receiverId, _receiver, _myId;
     public JSONArray histories;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     // Call when activity is first create
     @Override
@@ -169,10 +159,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public void displayMessage(ChatMessage message) {
