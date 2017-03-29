@@ -22,8 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".WaitActivity"/>
-        <activity
-            android:name=".ChatActivity"/>
+        <activity android:name=".ChatActivity"/>
     </application>
 
 </manifest>

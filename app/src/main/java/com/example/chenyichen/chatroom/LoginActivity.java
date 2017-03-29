@@ -57,6 +57,7 @@ public class LoginActivity extends Activity implements OnClickListener {
                     return;
                 // call AsynTask to perform network operation on separate thread
                 new HttpAsyncTask().execute(url + "api/users/");
+                break;
         }
 
     }
