@@ -77,7 +77,6 @@ public class LoginActivity extends Activity implements OnClickListener {
             if(_id.matches("401")) {
                 //Log.v("status", _id);
                 Toast.makeText(getBaseContext(), "Wrong username or password!", Toast.LENGTH_LONG).show();
-                return;
             }
             else {
                 Toast.makeText(getBaseContext(), "Successful login!", Toast.LENGTH_LONG).show();

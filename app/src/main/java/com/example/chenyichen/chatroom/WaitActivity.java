@@ -84,7 +84,7 @@ public class WaitActivity extends Activity implements
         try {
             socket = IO.socket(url);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            Log.d("Error", "cannnot initialize socket");
         }
         socket.connect();
         JSONObject sendMessage = new JSONObject();
@@ -92,7 +92,7 @@ public class WaitActivity extends Activity implements
             Log.v("id", _id);
             sendMessage.put("_id",_id);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.d("Error", "cannot put message into json");
         }
         socket.emit("newUser",sendMessage);
 
@@ -107,25 +107,10 @@ public class WaitActivity extends Activity implements
                         JSONArray result = (JSONArray) args[0];
                         try {
                             Log.v("change", "change");
-                            users = new ArrayList<String>();
-                            status = new ArrayList<String>();
-                            ids = new ArrayList<String>();
-                            for (int i=0; i<result.length(); i++){
-                                JSONObject user = result.getJSONObject(i);
-                                users.add(user.getString("username"));
-                                Log.v("username", user.getString("username"));
-                                Log.v("status", user.getString("online"));
-                                if (user.getString("online").matches("true")) {
-                                    status.add("ONLINE");
-                                }
-                                else{
-                                    status.add("OFFLINE");
-                                }
-                                ids.add(user.getString("_id"));
-                            }
+                            setArray(result);
                             setRowItem();
                         }catch(Exception e) {
-                            Log.d("InputStream", e.getLocalizedMessage());
+                            Log.d("Error", e.getLocalizedMessage());
                         }
                     }
                 } );
@@ -141,7 +126,7 @@ public class WaitActivity extends Activity implements
                     String idTwo = result.getString("sender");
                     switchToChatActivity(_id, idTwo);
                 }catch(Exception e) {
-                    Log.d("InputStream", e.getLocalizedMessage());
+                    Log.d("Error", e.getLocalizedMessage());
                 }
             }
         });
@@ -153,12 +138,12 @@ public class WaitActivity extends Activity implements
         protected String doInBackground(String... urls) {
             return GET(urls[0]);
         }
-
+        /*
         // onPostExecute gets the results of the AsyncTask.
         @Override
         protected void onPostExecute(String dummy) {
-            setRowItem();
         }
+        */
     }
 
     public String GET(String _url){
@@ -168,25 +153,25 @@ public class WaitActivity extends Activity implements
 
             HttpResponse httpResponse = httpClient.execute(httpGet);
             InputStream inputStream = httpResponse.getEntity().getContent();
-            setArray(inputStream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder content = new StringBuilder();
+            String line;
+            while (null != (line = br.readLine())) {
+                content.append(line);
+            }
+            JSONArray result = new JSONArray(content.toString());
+            setArray(result);
+            setRowItem();
         }catch(Exception e) {
-            Log.d("InputStream", e.getLocalizedMessage());
+            Log.d("Error", e.getLocalizedMessage());
         }
         return null;
     }
 
-    public void setArray(InputStream inputStream) throws JSONException, IOException {
+    public void setArray(JSONArray result) throws JSONException, IOException {
         users = new ArrayList<String>();
         status = new ArrayList<String>();
         ids = new ArrayList<String>();
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder content = new StringBuilder();
-        String line;
-        while (null != (line = br.readLine())) {
-            content.append(line);
-        }
-        //Log.v("content string", content.toString());
-        JSONArray result = new JSONArray(content.toString());
         for (int i=0; i<result.length(); i++){
             JSONObject user = result.getJSONObject(i);
             users.add(user.getString("username"));
@@ -205,11 +190,17 @@ public class WaitActivity extends Activity implements
     public void setRowItem(){
         rowItems = new ArrayList<RowItem>();
         for (int i = 0; i < users.size(); i++) {
-            //Log.v("init_user", users.get(i));
-            RowItem item = new RowItem(images[0], users.get(i), status.get(i));
-            rowItems.add(item);
+            if (status.get(i).matches("ONLINE")) {
+                RowItem item = new RowItem(images[0], users.get(i), status.get(i));
+                rowItems.add(item);
+            }
         }
-
+        for (int i = 0; i < users.size(); i++) {
+            if (status.get(i).matches("OFFLINE")) {
+                RowItem item = new RowItem(images[0], users.get(i), status.get(i));
+                rowItems.add(item);
+            }
+        }
         listView = (ListView) findViewById(R.id.list);
         CustomBaseAdapter adapter = new CustomBaseAdapter(this, rowItems);
         listView.setAdapter(adapter);
@@ -218,7 +209,7 @@ public class WaitActivity extends Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+        /*
         if (status.get(position).matches("OFFLINE")){
             Toast toast = Toast.makeText(getApplicationContext(),
                     "The user is OFFLINE...",
@@ -227,7 +218,7 @@ public class WaitActivity extends Activity implements
             toast.show();
             return;
         }
-
+        */
         Toast toast = Toast.makeText(getApplicationContext(),
                 "Chat with " + users.get(position) + " !",
                 Toast.LENGTH_SHORT);
