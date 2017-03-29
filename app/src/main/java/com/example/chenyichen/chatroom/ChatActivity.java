@@ -320,12 +320,13 @@ public class ChatActivity extends AppCompatActivity {
             ChatMessage msg = new ChatMessage();
             try {
                 JSONObject data = histories.getJSONObject(i);
-                if (data.getString("user").matches(_myId)){
+                if (data.getString("_id").matches(_myId)){
                     msg.setMe(true);
+                    //Log.d("Test","")
                     msg.setMessage(data.getString("message"));
                     msg.setDate(DateFormat.getDateTimeInstance().format(new Date()));
                 }
-                else if (data.getString("user").matches(_receiverId)){
+                else if (data.getString("_id").matches(_receiverId)){
                     msg.setMe(false);
                     msg.setMessage(data.getString("message"));
 
