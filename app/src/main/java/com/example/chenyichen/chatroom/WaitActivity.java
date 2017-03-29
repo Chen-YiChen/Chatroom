@@ -63,7 +63,7 @@ public class WaitActivity extends Activity implements
     String url = null;
     String _id = null;
     Socket socket = null;
-    SocketHandler socketHandler;
+    //SocketHandler socketHandler;
 
     /** Called when the activity is first created. */
     @Override
@@ -235,12 +235,13 @@ public class WaitActivity extends Activity implements
 
         Intent _intent = new Intent();
         _intent.setClass(WaitActivity.this, ChatActivity.class);
-        socketHandler.setSocket(socket);
+        //socketHandler.setSocket(socket);
         Bundle _bundle = new Bundle();
         _bundle.putString("idOne", idOne);
         _bundle.putString("idTwo", idTwo);
 
         _intent.putExtras(_bundle);
+        socket.disconnect();
         startActivity(_intent);
     }
 }
