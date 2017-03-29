@@ -99,6 +99,7 @@ public class WaitActivity extends Activity implements
         socket.on("online", new Emitter.Listener(){
             @Override
             public void call(Object... args){
+
                 try {
                     Log.v("change", "change");
                     InputStream inputStream = (InputStream)args[0];
