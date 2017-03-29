@@ -2,9 +2,10 @@ package com.example.chenyichen.chatroom;
 
 import android.app.Activity;
 import android.content.Intent;
-//import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.ActionBarActivity;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.util.ArrayList;
 
@@ -40,13 +41,13 @@ import java.net.URISyntaxException;
 public class ChatActivity extends AppCompatActivity{
 
 
-/*    private EditText messageET;
+    private EditText messageET;
     private ListView messagesContainer;
     private Button sendBtn;
     private ChatAdapter adapter;
     private ArrayList<ChatMessage> chatHistory;
-    */
-    public static String[] titles = new String[] { "Strawberry",
+
+/*    public static String[] titles = new String[] { "Strawberry",
             "Banana", "Orange", "Mixed" };
 
     public static String[] descriptions = new String[] {
@@ -55,13 +56,13 @@ public class ChatActivity extends AppCompatActivity{
             "Mixed Fruits" };
 
     public static Integer[] images = { R.drawable.chaton };
-
+*/
     public SocketHandler socketHandler;
-
+/*
     private EditText inputMessageView;
     private TextView myMessage, recvMessage;
     private Button send;
-
+*/
 
 
 
@@ -69,32 +70,35 @@ public class ChatActivity extends AppCompatActivity{
     //List<RowItem> Messages;
 
     public static Socket socket ;
-    public String _receiverId, _receiver;
+    public String _receiverId, _receiver, _myId;
 
     // Call when activity is first create
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
- /*       messagesContainer = (ListView) findViewById(R.id.messagesContainer);
+        setContentView(R.layout.activity_chatt);
+        messagesContainer = (ListView) findViewById(R.id.messagesContainer);
         messageET = (EditText) findViewById(R.id.messageEdit);
         sendBtn = (Button) findViewById(R.id.chatSendButton);
         TextView meLabel = (TextView) findViewById(R.id.meLbl);
         TextView companionLabel = (TextView) findViewById(R.id.friendLabel);
         RelativeLayout container = (RelativeLayout) findViewById(R.id.container);
         companionLabel.setText("My Buddy");// Hard Coded
-*/
-
+        adapter = new ChatAdapter(ChatActivity.this, new ArrayList<ChatMessage>());
+        messagesContainer.setAdapter(adapter);
+/*
         myMessage = (TextView) findViewById(R.id.text_myMsg);
         recvMessage = (TextView) findViewById(R.id.text_recvMsg) ;
         inputMessageView = (EditText) findViewById(R.id.editText);
         send = (Button) findViewById(R.id.button_send);
-
+*/
         // Get the bundle data from old activity
         Bundle _bundle = getIntent().getExtras();
         _receiverId = _bundle.getString("idTwo");
+        _myId = _bundle.getString("idOne");
         //_receiver = _bundle.getString("_reveiver");
-        //Log.v("receiver", _receiver);
+        Log.v("receiver", _receiverId);
+        Log.v("my ID", _myId);
 
         socket = socketHandler.getSocket();
         /*try{
@@ -120,10 +124,10 @@ public class ChatActivity extends AppCompatActivity{
 
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
-        send.setOnClickListener(new View.OnClickListener(){
+        sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-       /*         String messageText = messageET.getText().toString();
+                String messageText = messageET.getText().toString();
                 if (TextUtils.isEmpty(messageText)) {
                     return;
                 }
@@ -136,11 +140,11 @@ public class ChatActivity extends AppCompatActivity{
 
                 messageET.setText("");
                 displayMessage(chatMessage);
-                */
+
                 //String message = inputMessageView.getText().toString();
                 //sendMessage(message);
-                sendMessage();
-                inputMessageView.setText("");
+                sendMessage(messageText);
+                //inputMessageView.setText("");
 
             }
         });
@@ -149,7 +153,7 @@ public class ChatActivity extends AppCompatActivity{
 
 
     }
- /*   public void displayMessage(ChatMessage message) {
+    public void displayMessage(ChatMessage message) {
         adapter.add(message);
         adapter.notifyDataSetChanged();
         scroll();
@@ -157,15 +161,17 @@ public class ChatActivity extends AppCompatActivity{
     private void scroll() {
         messagesContainer.setSelection(messagesContainer.getCount() - 1);
     }
-*/
-    private void sendMessage(){//String message){
-        String message = inputMessageView.getText().toString().trim();
-        myMessage.setText(message);
+
+    private void sendMessage(String message){
+//        String message = inputMessageView.getText().toString().trim();
+//        myMessage.setText(message);
         JSONObject sendText = new JSONObject();
         try{
+
             sendText.put("receiver",_receiverId);
             sendText.put("msg",message);
             socket.emit("chat", sendText);
+            Log.d("Success!","Successfully send text");
         }catch(JSONException e){
             Log.v("Error","Cannot put json file");
         }
@@ -174,17 +180,23 @@ public class ChatActivity extends AppCompatActivity{
     private Emitter.Listener handleIncomingMessages = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            new Thread(new Runnable() {
+
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d("Success","Successfully run the thread");
                     JSONObject data = (JSONObject) args[0];
-                    String message, errMsg;
+                    String message, ID;
                     //String imageText;
                     try {
-                        message = data.getString("data").toString();
+                        message = data.getString("msg").toString();
                         addMessage(message);
+                        ID = data.getString("receiver").toString();
+                        Log.d("Success!","Successfully get data");
+                        Log.d("Get my ID from server", ID);
 
                     } catch (JSONException e) {
+                        Log.d("Error","Get json error.");
 
                     }
 
@@ -197,18 +209,19 @@ public class ChatActivity extends AppCompatActivity{
     private Emitter.Listener handleErr = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            new Thread(new Runnable() {
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
                     String message, errMsg;
                     //String imageText;
                     try {
-                        message = data.getString("data").toString();
+                        message = data.getString("error").toString();
                         Log.d("Error", message);
                         //addMessage(message);
 
                     } catch (JSONException e) {
+                        Log.d("Error", "Cannot get json data");
 
                     }
 
@@ -218,14 +231,15 @@ public class ChatActivity extends AppCompatActivity{
         }
     };
 
-    private void addMessage(String message) {
-  /*      ChatMessage msg = new ChatMessage();
+    private void addMessage(String messageText) {
+        ChatMessage msg = new ChatMessage();
         //msg.setId(1);
+        msg.setMessage(messageText);
         msg.setMe(false);
         msg.setDate(DateFormat.getDateTimeInstance().format(new Date()));
         displayMessage(msg);
-        */
-        recvMessage.setText(message);
+
+        //recvMessage.setText(message);
     }
 
 }
