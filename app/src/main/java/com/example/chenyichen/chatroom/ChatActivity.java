@@ -131,6 +131,7 @@ public class ChatActivity extends AppCompatActivity {
 
 
                 //Messages = new ArrayList<RowItem>();
+        new HttpAsyncTask().execute(urls);
         loadDummyHistory();
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
