@@ -118,7 +118,7 @@ public class ChatActivity extends AppCompatActivity {
         _receiverId = _bundle.getString("idTwo");
         _myId = _bundle.getString("idOne");
 
-        urls = urls + "/" + _receiverId + "/" + _myId;
+        urls = urls + _receiverId + "/" + _myId + "/";
         //_receiver = _bundle.getString("_reveiver");
         Log.v("receiver", _receiverId);
         Log.v("my ID", _myId);
@@ -142,7 +142,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 //Messages = new ArrayList<RowItem>();
         new HttpAsyncTask().execute(urls);
-        loadDummyHistory();
+
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
         sendBtn.setOnClickListener(new View.OnClickListener() {
@@ -171,9 +171,6 @@ public class ChatActivity extends AppCompatActivity {
         });
 
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public void displayMessage(ChatMessage message) {
@@ -281,7 +278,17 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String content) {
             try {
+
+                if(content.length() == 2) {
+                    adapter = new ChatAdapter(ChatActivity.this, new ArrayList<ChatMessage>());
+                    messagesContainer.setAdapter(adapter);
+                    return ;
+                }
                 histories = new JSONArray(content);
+                Log.d("History", histories.toString());
+                loadDummyHistory();
+
+
             } catch (JSONException e) {
 
             }
@@ -294,6 +301,7 @@ public class ChatActivity extends AppCompatActivity {
     public String GET(String _url) {
         StringBuilder content = new StringBuilder();
         try {
+            Log.d("Test","In GET function");
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpGet httpGet = new HttpGet(_url);
 
@@ -310,6 +318,7 @@ public class ChatActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d("InputStream", e.getLocalizedMessage());
         }
+        Log.d("Content",content.toString());
         return content.toString();
     }
 
