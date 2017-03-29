@@ -67,7 +67,7 @@ public class ChatActivity extends AppCompatActivity {
 
         public static Integer[] images = { R.drawable.chaton };
     */
-    public SocketHandler socketHandler;
+    //public SocketHandler socketHandler;
     /*
         private EditText inputMessageView;
         private TextView myMessage, recvMessage;
@@ -118,7 +118,7 @@ public class ChatActivity extends AppCompatActivity {
             socket = IO.socket("http://140.112.18.195:8080");
             socket.connect();
             JSONObject sendText = new JSONObject();
-            sendText.put("data", _myId);
+            sendText.put("_id", _myId);
             socket.emit("newUser",sendText);
 
         }catch(URISyntaxException e){
