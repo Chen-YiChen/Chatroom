@@ -113,20 +113,20 @@ public class ChatActivity extends AppCompatActivity {
         Log.v("receiver", _receiverId);
         Log.v("my ID", _myId);
 
-        socket = socketHandler.getSocket();
-        /*try{
-            //socket = IO.socket("http://140.112.18.195:8080");
-            ///socket.connect();
+        //socket = socketHandler.getSocket();
+        try{
+            socket = IO.socket("http://140.112.18.195:8080");
+            socket.connect();
             JSONObject sendText = new JSONObject();
-            //sendText.put("data", _id);
-            //socket.emit("newUser",sendText);
+            sendText.put("data", _myId);
+            socket.emit("newUser",sendText);
 
         }catch(URISyntaxException e){
 
             Log.d("Error","Cannot connect to server!");
         } catch (JSONException e) {
-            Log.v("Error","Cannot put json file.")
-        }*/
+            Log.v("Error","Cannot put json file.");
+        }
 
 
 
