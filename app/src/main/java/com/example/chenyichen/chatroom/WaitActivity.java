@@ -129,7 +129,6 @@ public class WaitActivity extends Activity implements
                         }
                     }
                 } );
->>>>>>> 703405ac887ce87fd33d00188249bc0b6988eba4
             }
         });
 
