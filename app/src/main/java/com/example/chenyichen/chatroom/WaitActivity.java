@@ -41,6 +41,8 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 import java.net.URISyntaxException;
+import java.util.concurrent.RunnableFuture;
+
 /**
  * Created by chenyichen on 3/22/17.
  */
@@ -98,15 +100,35 @@ public class WaitActivity extends Activity implements
 
         socket.on("online", new Emitter.Listener(){
             @Override
-            public void call(Object... args){
-                try {
-                    Log.v("change", "change");
-                    InputStream inputStream = (InputStream)args[0];
-                    setArray(inputStream);
-                    setRowItem();
-                }catch(Exception e) {
-                    Log.d("InputStream", e.getLocalizedMessage());
-                }
+            public void call(final Object... args){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        JSONArray result = (JSONArray) args[0];
+                        try {
+                            Log.v("change", "change");
+                            users = new ArrayList<String>();
+                            status = new ArrayList<String>();
+                            ids = new ArrayList<String>();
+                            for (int i=0; i<result.length(); i++){
+                                JSONObject user = result.getJSONObject(i);
+                                users.add(user.getString("username"));
+                                Log.v("username", user.getString("username"));
+                                Log.v("status", user.getString("online"));
+                                if (user.getString("online").matches("true")) {
+                                    status.add("ONLINE");
+                                }
+                                else{
+                                    status.add("OFFLINE");
+                                }
+                                ids.add(user.getString("_id"));
+                            }
+                            setRowItem();
+                        }catch(Exception e) {
+                            Log.d("InputStream", e.getLocalizedMessage());
+                        }
+                    }
+                } );
             }
         });
 
@@ -114,16 +136,9 @@ public class WaitActivity extends Activity implements
             @Override
             public void call(Object... args){
                 try {
-                    InputStream inputStream = (InputStream)args[0];
-                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder content = new StringBuilder();
-                    String line;
-                    while (null != (line = br.readLine())) {
-                        content.append(line);
-                    }
-                    Log.v("content string", content.toString());
-                    JSONObject result = new JSONObject(content.toString());
-                    String idTwo = result.getString("_id");
+                    JSONObject result = (JSONObject) args[0];
+                    Log.v("result", result.toString());
+                    String idTwo = result.getString("sender");
                     switchToChatActivity(_id, idTwo);
                 }catch(Exception e) {
                     Log.d("InputStream", e.getLocalizedMessage());
@@ -203,7 +218,7 @@ public class WaitActivity extends Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        /*
+
         if (status.get(position).matches("OFFLINE")){
             Toast toast = Toast.makeText(getApplicationContext(),
                     "The user is OFFLINE...",
@@ -212,7 +227,7 @@ public class WaitActivity extends Activity implements
             toast.show();
             return;
         }
-        */
+
         Toast toast = Toast.makeText(getApplicationContext(),
                 "Chat with " + users.get(position) + " !",
                 Toast.LENGTH_SHORT);
