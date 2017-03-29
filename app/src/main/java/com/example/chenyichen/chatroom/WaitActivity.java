@@ -106,7 +106,7 @@ public class WaitActivity extends Activity implements
                     public void run() {
                         JSONArray result = (JSONArray) args[0];
                         try {
-                            //Log.v("change", "change");
+                            Log.v("online", "online");
                             setArray(result);
                             setRowItem();
                         }catch(Exception e) {
@@ -122,7 +122,7 @@ public class WaitActivity extends Activity implements
             public void call(Object... args){
                 try {
                     JSONObject result = (JSONObject) args[0];
-                    //Log.v("result", result.toString());
+                    Log.v("chat", result.toString());
                     String idTwo = result.getString("sender");
                     switchToChatActivity(_id, idTwo);
                     Log.d("Error","Still have wait socket on chat");
@@ -175,16 +175,19 @@ public class WaitActivity extends Activity implements
         ids = new ArrayList<String>();
         for (int i=0; i<result.length(); i++){
             JSONObject user = result.getJSONObject(i);
-            users.add(user.getString("username"));
-            //Log.v("username", user.getString("username"));
-            //Log.v("status", user.getString("online"));
             if (user.getString("online").matches("true")) {
                 status.add("ONLINE");
+                users.add(user.getString("username"));
+                ids.add(user.getString("_id"));
             }
-            else{
+        }
+        for (int i=0; i<result.length(); i++){
+            JSONObject user = result.getJSONObject(i);
+            if (user.getString("online").matches("false")) {
                 status.add("OFFLINE");
+                users.add(user.getString("username"));
+                ids.add(user.getString("_id"));
             }
-            ids.add(user.getString("_id"));
         }
     }
 
@@ -192,13 +195,13 @@ public class WaitActivity extends Activity implements
         rowItems = new ArrayList<RowItem>();
         for (int i = 0; i < users.size(); i++) {
             if (status.get(i).matches("ONLINE")) {
-                RowItem item = new RowItem(images[0], users.get(i), status.get(i));
+                RowItem item = new RowItem(images[0], users.get(i), status.get(i)/*, ids.get(i)*/);
                 rowItems.add(item);
             }
         }
         for (int i = 0; i < users.size(); i++) {
             if (status.get(i).matches("OFFLINE")) {
-                RowItem item = new RowItem(images[0], users.get(i), status.get(i));
+                RowItem item = new RowItem(images[0], users.get(i), status.get(i)/*, ids.get(i)*/);
                 rowItems.add(item);
             }
         }
