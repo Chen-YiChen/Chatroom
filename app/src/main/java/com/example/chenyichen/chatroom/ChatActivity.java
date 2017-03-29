@@ -142,9 +142,9 @@ public class ChatActivity extends AppCompatActivity {
 
                 //Messages = new ArrayList<RowItem>();
         new HttpAsyncTask().execute(urls);
-
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
+
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -367,6 +367,7 @@ public class ChatActivity extends AppCompatActivity {
         messagesContainer.setAdapter(adapter);
 
         for (int i = 0; i < chatHistory.size(); i++) {
+            Log.d("Histroy",chatHistory.get(i));
             ChatMessage message = chatHistory.get(i);
             displayMessage(message);
         }
