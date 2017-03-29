@@ -89,7 +89,7 @@ public class WaitActivity extends Activity implements
         socket.connect();
         JSONObject sendMessage = new JSONObject();
         try {
-            Log.v("id", _id);
+            //Log.v("id", _id);
             sendMessage.put("_id",_id);
         } catch (JSONException e) {
             Log.d("Error", "cannot put message into json");
@@ -106,7 +106,7 @@ public class WaitActivity extends Activity implements
                     public void run() {
                         JSONArray result = (JSONArray) args[0];
                         try {
-                            Log.v("change", "change");
+                            //Log.v("change", "change");
                             setArray(result);
                             setRowItem();
                         }catch(Exception e) {
@@ -122,7 +122,7 @@ public class WaitActivity extends Activity implements
             public void call(Object... args){
                 try {
                     JSONObject result = (JSONObject) args[0];
-                    Log.v("result", result.toString());
+                    //Log.v("result", result.toString());
                     String idTwo = result.getString("sender");
                     switchToChatActivity(_id, idTwo);
                 }catch(Exception e) {
@@ -175,8 +175,8 @@ public class WaitActivity extends Activity implements
         for (int i=0; i<result.length(); i++){
             JSONObject user = result.getJSONObject(i);
             users.add(user.getString("username"));
-            Log.v("username", user.getString("username"));
-            Log.v("status", user.getString("online"));
+            //Log.v("username", user.getString("username"));
+            //Log.v("status", user.getString("online"));
             if (user.getString("online").matches("true")) {
                 status.add("ONLINE");
             }
