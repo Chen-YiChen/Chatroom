@@ -166,6 +166,7 @@ public class ChatActivity extends AppCompatActivity{
             sendText.put("receiver",_receiverId);
             sendText.put("msg",message);
             socket.emit("chat", sendText);
+            Log.d("Success!","Successfully send text");
         }catch(JSONException e){
             Log.v("Error","Cannot put json file");
         }
@@ -183,6 +184,7 @@ public class ChatActivity extends AppCompatActivity{
                     try {
                         message = data.getString("data").toString();
                         addMessage(message);
+                        Log.d("Success!","Successfully get data");
 
                     } catch (JSONException e) {
 

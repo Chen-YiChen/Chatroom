@@ -87,7 +87,7 @@ public class WaitActivity extends Activity implements
             socket = IO.socket(url);
             socket.connect();
             JSONObject sendMessage = new JSONObject();
-            sendMessage.put("data",_id);
+            sendMessage.put("_id",_id);
             socket.emit("newUser",sendMessage);
             Log.v("emit", "emit");
             socket.on("online", new Emitter.Listener(){
