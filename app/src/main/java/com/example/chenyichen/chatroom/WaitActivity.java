@@ -125,6 +125,7 @@ public class WaitActivity extends Activity implements
                     //Log.v("result", result.toString());
                     String idTwo = result.getString("sender");
                     switchToChatActivity(_id, idTwo);
+                    Log.d("Error","Still have wait socket on chat");
                 }catch(Exception e) {
                     Log.d("Error", e.getLocalizedMessage());
                 }
