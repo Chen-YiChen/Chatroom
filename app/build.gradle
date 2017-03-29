@@ -32,4 +32,5 @@ dependencies {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
+    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
 }

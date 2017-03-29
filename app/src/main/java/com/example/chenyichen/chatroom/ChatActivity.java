@@ -2,11 +2,17 @@ package com.example.chenyichen.chatroom;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 //import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import java.text.DateFormat;
@@ -20,6 +26,15 @@ import android.widget.TextView;
 import android.widget.RelativeLayout;
 
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -38,7 +53,7 @@ import java.net.URISyntaxException;
  */
 
 
-public class ChatActivity extends AppCompatActivity{
+public class ChatActivity extends AppCompatActivity {
 
 
     private EditText messageET;
@@ -47,34 +62,40 @@ public class ChatActivity extends AppCompatActivity{
     private ChatAdapter adapter;
     private ArrayList<ChatMessage> chatHistory;
 
-/*    public static String[] titles = new String[] { "Strawberry",
-            "Banana", "Orange", "Mixed" };
+    /*    public static String[] titles = new String[] { "Strawberry",
+                "Banana", "Orange", "Mixed" };
 
-    public static String[] descriptions = new String[] {
-            "It is an aggregate accessory fruit",
-            "It is the largest herbaceous flowering plant", "Citrus Fruit",
-            "Mixed Fruits" };
+        public static String[] descriptions = new String[] {
+                "It is an aggregate accessory fruit",
+                "It is the largest herbaceous flowering plant", "Citrus Fruit",
+                "Mixed Fruits" };
 
-    public static Integer[] images = { R.drawable.chaton };
-*/
+        public static Integer[] images = { R.drawable.chaton };
+    */
     public SocketHandler socketHandler;
-/*
-    private EditText inputMessageView;
-    private TextView myMessage, recvMessage;
-    private Button send;
-*/
+    /*
+        private EditText inputMessageView;
+        private TextView myMessage, recvMessage;
+        private Button send;
+    */
+    String urls = "http://140.112.18.195:8080/api/messages/";
 
 
-
-   // ListView listView;
+    // ListView listView;
     //List<RowItem> Messages;
 
-    public static Socket socket ;
+    public static Socket socket;
     public String _receiverId, _receiver, _myId;
+    public JSONArray histories;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     // Call when activity is first create
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatt);
         messagesContainer = (ListView) findViewById(R.id.messagesContainer);
@@ -84,8 +105,8 @@ public class ChatActivity extends AppCompatActivity{
         TextView companionLabel = (TextView) findViewById(R.id.friendLabel);
         RelativeLayout container = (RelativeLayout) findViewById(R.id.container);
         companionLabel.setText("My Buddy");// Hard Coded
-        adapter = new ChatAdapter(ChatActivity.this, new ArrayList<ChatMessage>());
-        messagesContainer.setAdapter(adapter);
+        //adapter = new ChatAdapter(ChatActivity.this, new ArrayList<ChatMessage>());
+        //messagesContainer.setAdapter(adapter);
 /*
         myMessage = (TextView) findViewById(R.id.text_myMsg);
         recvMessage = (TextView) findViewById(R.id.text_recvMsg) ;
@@ -96,6 +117,8 @@ public class ChatActivity extends AppCompatActivity{
         Bundle _bundle = getIntent().getExtras();
         _receiverId = _bundle.getString("idTwo");
         _myId = _bundle.getString("idOne");
+
+        urls = urls + "/" + _receiverId + "/" + _myId;
         //_receiver = _bundle.getString("_reveiver");
         Log.v("receiver", _receiverId);
         Log.v("my ID", _myId);
@@ -117,16 +140,13 @@ public class ChatActivity extends AppCompatActivity{
 
 
 
-
-
-
-        //Messages = new ArrayList<RowItem>();
-
+                //Messages = new ArrayList<RowItem>();
+        loadDummyHistory();
         socket.on("chat", handleIncomingMessages);
         socket.on("err", handleErr);
-        sendBtn.setOnClickListener(new View.OnClickListener(){
+        sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 String messageText = messageET.getText().toString();
                 if (TextUtils.isEmpty(messageText)) {
                     return;
@@ -150,33 +170,37 @@ public class ChatActivity extends AppCompatActivity{
         });
 
 
-
-
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+
     public void displayMessage(ChatMessage message) {
         adapter.add(message);
         adapter.notifyDataSetChanged();
         scroll();
     }
+
     private void scroll() {
         messagesContainer.setSelection(messagesContainer.getCount() - 1);
     }
 
-    private void sendMessage(String message){
+    private void sendMessage(String message) {
 //        String message = inputMessageView.getText().toString().trim();
 //        myMessage.setText(message);
         JSONObject sendText = new JSONObject();
-        try{
+        try {
 
-            sendText.put("receiver",_receiverId);
-            sendText.put("msg",message);
+            sendText.put("receiver", _receiverId);
+            sendText.put("msg", message);
             socket.emit("chat", sendText);
-            Log.d("Success!","Successfully send text");
-        }catch(JSONException e){
-            Log.v("Error","Cannot put json file");
+            Log.d("Success!", "Successfully send text");
+        } catch (JSONException e) {
+            Log.v("Error", "Cannot put json file");
         }
 
     }
+
     private Emitter.Listener handleIncomingMessages = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -184,7 +208,7 @@ public class ChatActivity extends AppCompatActivity{
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("Success","Successfully run the thread");
+                    Log.d("Success", "Successfully run the thread");
                     JSONObject data = (JSONObject) args[0];
                     String message, ID;
                     //String imageText;
@@ -192,11 +216,11 @@ public class ChatActivity extends AppCompatActivity{
                         message = data.getString("msg").toString();
                         addMessage(message);
                         ID = data.getString("receiver").toString();
-                        Log.d("Success!","Successfully get data");
+                        Log.d("Success!", "Successfully get data");
                         Log.d("Get my ID from server", ID);
 
                     } catch (JSONException e) {
-                        Log.d("Error","Get json error.");
+                        Log.d("Error", "Get json error.");
 
                     }
 
@@ -240,6 +264,135 @@ public class ChatActivity extends AppCompatActivity{
         displayMessage(msg);
 
         //recvMessage.setText(message);
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Chat Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
+
+
+    private class HttpAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            return GET(urls[0]);
+        }
+
+        // onPostExecute gets the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String content) {
+            try {
+                histories = new JSONArray(content);
+            } catch (JSONException e) {
+
+            }
+
+
+        }
+    }
+
+
+    public String GET(String _url) {
+        StringBuilder content = new StringBuilder();
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpGet httpGet = new HttpGet(_url);
+
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            InputStream inputStream = httpResponse.getEntity().getContent();
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while (null != (line = br.readLine())) {
+                content.append(line);
+            }
+
+            //setArray(inputStream);
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+        return content.toString();
+    }
+
+    private void loadDummyHistory() {
+
+        chatHistory = new ArrayList<ChatMessage>();
+
+
+        for (int i = 0; i < histories.length(); i++) {
+            ChatMessage msg = new ChatMessage();
+            try {
+                JSONObject data = histories.getJSONObject(i);
+                if (data.getString("user").matches(_myId)){
+                    msg.setMe(true);
+                    msg.setMessage(data.getString("message"));
+                    msg.setDate(DateFormat.getDateTimeInstance().format(new Date()));
+                }
+                else if (data.getString("user").matches(_receiverId)){
+                    msg.setMe(false);
+                    msg.setMessage(data.getString("message"));
+
+                }
+
+            } catch (JSONException e) {
+                Log.d("Error","Cannot get history json.");
+            }
+            chatHistory.add(msg);
+
+
+        }
+     /*   msg.setId(1);
+        msg.setMe(false);
+        msg.setMessage("Hi");
+        msg.setDate(DateFormat.getDateTimeInstance().format(new Date()));
+        chatHistory.add(msg);
+        ChatMessage msg1 = new ChatMessage();
+        msg1.setId(2);
+        msg1.setMe(false);
+        msg1.setMessage("How r u doing???");
+        msg1.setDate(DateFormat.getDateTimeInstance().format(new Date()));
+
+        chatHistory.add(msg1);
+*/
+        adapter = new ChatAdapter(ChatActivity.this, new ArrayList<ChatMessage>());
+        messagesContainer.setAdapter(adapter);
+
+        for (int i = 0; i < chatHistory.size(); i++) {
+            ChatMessage message = chatHistory.get(i);
+            displayMessage(message);
+        }
     }
 
 }
